@@ -14,7 +14,7 @@ def launch_gui():
     root.title("Pincer Movement Simulation")
 
     Label(root, text="Number of Agents (even number):").pack(pady=10)
-    num_agents_var = IntVar(value=4)
+    num_agents_var = IntVar(value=8)
     Entry(root, textvariable=num_agents_var).pack(pady=10)
 
     Label(root, text="Radius of Circle (R0):").pack(pady=10)
@@ -22,7 +22,7 @@ def launch_gui():
     Entry(root, textvariable=radius_var).pack(pady=10)
 
     Label(root, text="Sensor Length (r):").pack(pady=10)
-    r_var = IntVar(value=25)
+    r_var = IntVar(value=80)
     Entry(root, textvariable=r_var).pack(pady=10)
 
     Button(root, text="Start Simulation", command=on_submit).pack(pady=20)

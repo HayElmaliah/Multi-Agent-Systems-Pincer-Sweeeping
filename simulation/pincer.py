@@ -27,7 +27,20 @@ def point_on_line(px, py, start, end, buffer=0.1):
     return False
 
 def simulate(n_sweepers, R0, r):
-    step_size = 0.5
+    # Define the constant evader velocity Vt
+    Vt = 1.0  # You can adjust this value as needed
+
+    # Calculate the initial critical velocity Vc based on R0
+    Vc = (2 * np.pi * R0 * Vt) / r
+    delta_V = 0.1
+    Vs = Vc + delta_V
+
+    # Calculate the initial time to complete a circle Tc_i
+    Tc_i = (2 * np.pi * R0) / (n_sweepers * Vs)
+
+    # Calculate the initial step size inward
+    step_size_inward = (r / n_sweepers) - (Vt * Tc_i)
+
     initial_separation = True
     sensor_length = 2 * r / n_sweepers
 
@@ -78,7 +91,7 @@ def simulate(n_sweepers, R0, r):
         return [sweepers, evaders] + sensors
 
     def update(frame):
-        nonlocal sweeper_x, sweeper_y, R0, initial_separation, animation_should_stop
+        nonlocal sweeper_x, sweeper_y, R0, Vc, delta_V, Vs, Tc_i, step_size_inward, animation_should_stop, initial_separation
 
         # If the animation should stop, just return the current state
         if animation_should_stop:
@@ -87,7 +100,7 @@ def simulate(n_sweepers, R0, r):
         if initial_separation:
             for i in range(n_sweepers):
                 angle = np.arctan2(sweeper_y[i], sweeper_x[i])
-                angle += sweeper_directions[i] * step_size / R0
+                angle += sweeper_directions[i] * Vc / R0
                 sweeper_x[i] = R0 * np.cos(angle)
                 sweeper_y[i] = R0 * np.sin(angle)
             initial_separation = False
@@ -96,7 +109,7 @@ def simulate(n_sweepers, R0, r):
         # Move sweepers along the circumference
         for i in range(n_sweepers):
             angle = np.arctan2(sweeper_y[i], sweeper_x[i])
-            angle += sweeper_directions[i] * step_size / R0
+            angle += sweeper_directions[i] * Vc / R0
             sweeper_x[i] = R0 * np.cos(angle)
             sweeper_y[i] = R0 * np.sin(angle)
 
@@ -105,9 +118,15 @@ def simulate(n_sweepers, R0, r):
             for j in range(n_sweepers):
                 if i != j:
                     dist = np.sqrt((sweeper_x[j] - sweeper_x[i])**2 + (sweeper_y[j] - sweeper_y[i])**2)
-                    if dist < 2 * step_size:
+                    if dist < min(0.1, 2 * Vs):
                         sweeper_directions[i] *= -1
-                        R0 -= step_size
+                        R0 -= step_size_inward
+
+                        # Recalculate Vc, Tc_i, and step_size_inward based on the new R0
+                        Vc = (2 * np.pi * R0 * Vt) / r
+                        Vs = Vc + delta_V
+                        Tc_i = (2 * np.pi * R0) / (n_sweepers * Vs)
+                        step_size_inward = (r / n_sweepers) - (Vt * Tc_i)
 
         # If the radius is zero or negative, set the animation_should_stop flag to True
         if R0 <= (r/n_sweepers)*0.01:
