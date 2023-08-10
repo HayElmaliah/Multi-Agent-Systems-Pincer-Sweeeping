@@ -60,8 +60,12 @@ def simulate(n_sweepers, R0, r):
     evaders = ax.scatter(evader_x, evader_y, c=evader_colors, cmap=plt.cm.RdYlGn, vmin=0, vmax=2)
     sensors = [ax.plot([], [], 'k-')[0] for _ in range(n_sweepers)]
 
+    # Add a flag to indicate when the animation should stop
+    animation_should_stop = False
+
     def init():
         """Initialize the animation with default data."""
+        nonlocal animation_should_stop
         sweepers.set_data(sweeper_x, sweeper_y)
         evaders.set_offsets(np.c_[evader_x, evader_y])
         for i in range(n_sweepers):
@@ -74,7 +78,11 @@ def simulate(n_sweepers, R0, r):
         return [sweepers, evaders] + sensors
 
     def update(frame):
-        nonlocal sweeper_x, sweeper_y, R0, initial_separation
+        nonlocal sweeper_x, sweeper_y, R0, initial_separation, animation_should_stop
+
+        # If the animation should stop, just return the current state
+        if animation_should_stop:
+            return [sweepers, evaders] + sensors
 
         if initial_separation:
             for i in range(n_sweepers):
@@ -101,12 +109,17 @@ def simulate(n_sweepers, R0, r):
                         sweeper_directions[i] *= -1
                         R0 -= step_size
 
+        # If the radius is zero or negative, set the animation_should_stop flag to True
+        if R0 <= (r/n_sweepers)*0.01:
+            animation_should_stop = True
+            return [sweepers, evaders] + sensors
+
         # Update evader colors based on proximity to sweepers' sensors
         for i in range(n_evaders):
             for j in range(n_sweepers):
                 start = (sensors[j].get_xdata()[0], sensors[j].get_ydata()[0])
                 end = (sensors[j].get_xdata()[1], sensors[j].get_ydata()[1])
-                if point_on_line(evader_x[i], evader_y[i], start, end, buffer=((r/n_sweepers)*0.03)) and (np.sqrt((evader_x[i]-sweeper_x[j])**2 + (evader_y[i]-sweeper_y[j])**2)) <= ((r/n_sweepers)+((r/n_sweepers)*0.03)):
+                if point_on_line(evader_x[i], evader_y[i], start, end, buffer=((r/n_sweepers)*0.1)) and (np.sqrt((evader_x[i]-sweeper_x[j])**2 + (evader_y[i]-sweeper_y[j])**2)) <= ((r/n_sweepers)*1.1):
                     evader_colors[i] = 2  # 2 for green
 
         move_mask = [color == 0 for color in evader_colors]
