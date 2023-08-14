@@ -55,6 +55,9 @@ def simulate(n_sweepers, R0, r):
     sweeper_y = R0 * np.sin(sweeper_angles)
     sweeper_directions = np.array([1 if i % 2 == 0 else -1 for i in range(n_sweepers)])
 
+    sweeper_history_x = [[] for _ in range(n_sweepers)]
+    sweeper_history_y = [[] for _ in range(n_sweepers)]
+
     # Initialize evaders
     n_evaders = 10
     evader_angles = np.random.uniform(0, 2 * np.pi, n_evaders)
@@ -72,6 +75,7 @@ def simulate(n_sweepers, R0, r):
     evader_colors = [0] * n_evaders  # 0 for red, 2 for green
     evaders = ax.scatter(evader_x, evader_y, c=evader_colors, cmap=plt.cm.RdYlGn, vmin=0, vmax=2)
     sensors = [ax.plot([], [], 'k-')[0] for _ in range(n_sweepers)]
+    history_lines = [ax.plot([], [], 'k-', linewidth=0.5)[0] for _ in range(n_sweepers)]
 
     # Add a flag to indicate when the animation should stop
     animation_should_stop = False
@@ -91,7 +95,7 @@ def simulate(n_sweepers, R0, r):
         return [sweepers, evaders] + sensors
 
     def update(frame):
-        nonlocal sweeper_x, sweeper_y, R0, Vc, delta_V, Vs, Tc_i, step_size_inward, animation_should_stop, initial_separation
+        nonlocal sweeper_x, sweeper_y, R0, Vc, delta_V, Vs, Tc_i, step_size_inward, animation_should_stop, initial_separation, sweeper_history_x, sweeper_history_y, history_lines
 
         # If the animation should stop, just return the current state
         if animation_should_stop:
@@ -112,6 +116,10 @@ def simulate(n_sweepers, R0, r):
             angle += sweeper_directions[i] * Vc / R0
             sweeper_x[i] = R0 * np.cos(angle)
             sweeper_y[i] = R0 * np.sin(angle)
+
+        for i in range(n_sweepers):
+            sweeper_history_x[i].append(sweeper_x[i])
+            sweeper_history_y[i].append(sweeper_y[i])
 
         # Check for sweepers meeting and adjust directions and radius
         for i in range(n_sweepers):
@@ -138,7 +146,7 @@ def simulate(n_sweepers, R0, r):
             for j in range(n_sweepers):
                 start = (sensors[j].get_xdata()[0], sensors[j].get_ydata()[0])
                 end = (sensors[j].get_xdata()[1], sensors[j].get_ydata()[1])
-                if point_on_line(evader_x[i], evader_y[i], start, end, buffer=((r/n_sweepers)*0.1)) and (np.sqrt((evader_x[i]-sweeper_x[j])**2 + (evader_y[i]-sweeper_y[j])**2)) <= ((r/n_sweepers)*1.1):
+                if point_on_line(evader_x[i], evader_y[i], start, end, buffer=((r/n_sweepers))) and (np.sqrt((evader_x[i]-sweeper_x[j])**2 + (evader_y[i]-sweeper_y[j])**2)) <= ((r/n_sweepers)*1.1):
                     evader_colors[i] = 2  # 2 for green
 
         move_mask = [color == 0 for color in evader_colors]
@@ -160,7 +168,10 @@ def simulate(n_sweepers, R0, r):
             end_y = sweeper_y[i] + (sensor_length / 2) * np.sin(angle)
             sensors[i].set_data([start_x, end_x], [start_y, end_y])
 
-        return [sweepers, evaders] + sensors
+        for i in range(n_sweepers):
+            history_lines[i].set_data(sweeper_history_x[i], sweeper_history_y[i])
+
+        return [sweepers, evaders] + sensors + history_lines
 
     ani = FuncAnimation(fig, update, frames=360, init_func=init, repeat=True, blit=True)
     plt.show()
