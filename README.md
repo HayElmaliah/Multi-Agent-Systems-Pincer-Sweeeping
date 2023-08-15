@@ -1,6 +1,7 @@
 # Pincer Movement Simulation
 
 This project simulates the pincer movement of agents trying to detect evaders within a circular region.
+It is based on the paper at: https://link.springer.com/article/10.1007/s10846-022-01783-1
 
 ## How to Run
 
