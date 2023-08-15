@@ -2,15 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-# def calculate_angle(x, y):
-#     """Calculate the angle of a point with respect to the center of the circle."""
-#     return np.arctan2(y, x)
-
-# def are_approximately_equal_angles(angle1, angle2, threshold=0.1):
-#     """Check if two angles are approximately equal."""
-#     diff = np.abs(angle1 - angle2)
-#     return np.isclose(diff, 0, atol=threshold)
-
 def point_on_line(px, py, start, end, buffer=0.1):
     # Extract coordinates
     x1, y1 = start
@@ -196,5 +187,4 @@ def simulate(n_sweepers, R0, r):
         return [sweepers, evaders] + sensors + history_lines
 
     ani = FuncAnimation(fig, update, frames=360, init_func=init, repeat=True, blit=True, interval=200/pace)
-    # ani = FuncAnimation(fig, update, frames=360, init_func=init, repeat=True, blit=True)
     plt.show()
