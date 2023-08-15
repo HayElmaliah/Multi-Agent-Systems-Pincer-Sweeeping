@@ -28,7 +28,7 @@ def point_on_line(px, py, start, end, buffer=0.1):
 
 def simulate(n_sweepers, R0, r):
     # Define the constant evader velocity Vt
-    Vt = 1.0  # You can adjust this value as needed
+    Vt = 1.0
 
     # Calculate the initial critical velocity Vc based on R0
     Vc = (2 * np.pi * R0 * Vt) / r
