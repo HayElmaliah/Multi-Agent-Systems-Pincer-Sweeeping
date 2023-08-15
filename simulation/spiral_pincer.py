@@ -29,8 +29,7 @@ def point_on_line(px, py, start, end, buffer=0.1):
 def simulate(n_sweepers, R0, r):
     # Define the constant evader velocity Vt
     pace = n_sweepers**2 if n_sweepers > 2 else n_sweepers**4
-    Vt = 1 / pace  # You can adjust this value as needed
-    # Vt = 1.0
+    Vt = 1 / pace
     Vs = Vt * np.sqrt((((2 * np.pi / n_sweepers)**2) / (np.log((R0 + r/n_sweepers) / (R0 - r/n_sweepers))**2)) + 1) + 0.1
 
     def calculate_delta(Ri):
